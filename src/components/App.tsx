@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Report, ChartConfig, Dataset, ChartType, Dimension, Measure } from '../types';
 import Chart from './Chart/Chart';
 import { useReport } from '../hooks/useReport';
@@ -18,6 +18,7 @@ const App: React.FC = () => {
   const [configPanelChartId, setConfigPanelChartId] = useState<string | null>(null);
   const [isEditingReportTitle, setIsEditingReportTitle] = useState<boolean>(false);
   const [tempReportTitle, setTempReportTitle] = useState<string>('');
+  const [appKey, setAppKey] = useState<number>(0); // Force re-render key
   
   const {
     report,
@@ -31,7 +32,8 @@ const App: React.FC = () => {
     saveReport,
     loadReport,
     exportToHtml,
-    setReportDirect
+    setReportDirect,
+    clearReport
   } = useReport();
 
   const {
@@ -41,6 +43,13 @@ const App: React.FC = () => {
     error,
     reset: resetImport
   } = useHtmlImport();
+
+  // Auto-create report on component mount
+  useEffect(() => {
+    if (!report) {
+      createReport('New Report', 'A new BI report');
+    }
+  }, [report, createReport]);
 
   // Handler for editing report title
   const handleReportTitleDoubleClick = () => {
@@ -83,22 +92,25 @@ const App: React.FC = () => {
     createReport('New Report', 'A new BI report');
   };
 
-  // Handler for creating new (clear current report)
+  // Handler for creating new (clear current report and create fresh one)
   const handleCreateNew = () => {
-    setReportDirect(null);
+    // Reset all states to initial values
     setSelectedChartId(null);
     setConfigPanelChartId(null);
     setIsEditingReportTitle(false);
     setTempReportTitle('');
+    setIsDragOver(false);
+    setShowSampleData(false); // Ensure we're not in sample data mode
+    resetImport(); // Clear any import errors
+    
+    // Create a new fresh report
+    createReport('New Report', 'A new BI report');
+    setAppKey(prev => prev + 1); // Force complete component re-render
   };
 
   // Handler for adding a new chart
   const handleAddChart = (type: ChartType) => {
-    console.log('handleAddChart called with type:', type);
-    console.log('Current report:', report);
-    
     if (!report) {
-      console.error('No report found');
       return;
     }
     
@@ -107,9 +119,7 @@ const App: React.FC = () => {
     let updatedReport = report;
     
     if (report.datasets.length === 0) {
-      console.log('Creating new demo dataset');
       dataset = createDemoDataset();
-      console.log('Dataset created:', dataset);
       
       // Add dataset to report immediately
       updatedReport = {
@@ -117,15 +127,12 @@ const App: React.FC = () => {
         datasets: [...report.datasets, dataset],
         updatedAt: new Date()
       };
-      console.log('Updated report with dataset:', updatedReport);
     } else {
       dataset = report.datasets[0];
-      console.log('Using existing dataset:', dataset);
     }
     
     // Get chart-specific configuration
     const config = chartConfigurations[type];
-    console.log('Chart config:', config);
     
     // Configure dimensions based on chart type
     const dimensions = config.defaultDimensions.map((fieldId: string) => {
@@ -141,9 +148,6 @@ const App: React.FC = () => {
         calculation: measureConfig.calculation
       } : null;
     }).filter((measure): measure is Measure => measure !== null);
-    
-    console.log('Configured dimensions:', dimensions);
-    console.log('Configured measures:', measures);
     
     // Create chart with configuration
     const chartName = `New ${type} Chart`;
@@ -163,8 +167,6 @@ const App: React.FC = () => {
       }
     };
     
-    console.log('Created chart:', newChart);
-    
     // Add chart to report
     const finalReport = {
       ...updatedReport,
@@ -172,14 +174,9 @@ const App: React.FC = () => {
       updatedAt: new Date()
     };
     
-    console.log('Final report with new chart:', finalReport);
-    
     // Update the report state directly with the final result
-    console.log('Setting report directly to:', finalReport);
     setReportDirect(finalReport);
-    
     setSelectedChartId(newChart.id);
-    console.log('Selected chart ID set to:', newChart.id);
   };
 
   // Handler for removing a chart
@@ -215,7 +212,6 @@ const App: React.FC = () => {
       importFromFile(files[0])
         .then((importedReport) => {
           // The useHtmlImport hook will handle updating the report state
-          console.log('Imported report:', importedReport);
         })
         .catch((err) => {
           console.error('Error importing HTML:', err);
@@ -225,7 +221,6 @@ const App: React.FC = () => {
 
   // Drag and Drop handlers
   const handleDragStart = (e: React.DragEvent, chartType: ChartType) => {
-    console.log('Drag started:', chartType);
     e.dataTransfer.setData('application/chart-type', chartType);
     e.dataTransfer.setData('text/plain', chartType); // Fallback for compatibility
     e.dataTransfer.effectAllowed = 'copy';
@@ -270,7 +265,6 @@ const App: React.FC = () => {
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    console.log('Drop event triggered');
     
     setIsDragOver(false);
     
@@ -279,18 +273,12 @@ const App: React.FC = () => {
                      e.dataTransfer.getData('text/plain') ||
                      e.dataTransfer.getData('chartType');
     
-    console.log('Retrieved chart type:', chartType);
-    
     if (chartType && chartType as ChartType) {
-      console.log('Adding chart:', chartType);
       try {
         handleAddChart(chartType as ChartType);
-        console.log('Chart added successfully');
       } catch (error) {
         console.error('Error adding chart:', error);
       }
-    } else {
-      console.log('No valid chart type found in drop data');
     }
   };
 
@@ -308,17 +296,11 @@ const App: React.FC = () => {
   };
 
   return (
-    <div className="app">
+    <div key={appKey} className="app">
       <header className="app-header">
         <h1>Core BI Engine</h1>
         <div className="app-actions">
-          {!report && !showSampleData && (
-            <button className="btn btn-primary" onClick={handleCreateReport}>
-              <FiPlus className="btn-icon" />
-              Tạo Report Mới
-            </button>
-          )}
-          {report && !showSampleData && (
+          {!showSampleData && (
             <>
               <button className="btn btn-danger" onClick={handleCreateNew}>
                 <FiPlus className="btn-icon" />
@@ -351,7 +333,7 @@ const App: React.FC = () => {
       </header>
 
       <div className="app-container">
-        {report && (
+        {!showSampleData && (
           <aside className="chart-sidebar">
             <div className="sidebar-section">
               <h3>Chart Types</h3>
@@ -445,16 +427,8 @@ const App: React.FC = () => {
         <main className="app-content">
         {showSampleData ? (
           <SampleDataDemo />
-        ) : (
-          <>
-            {!report && (
-              <div className="app-empty">
-                <p>No report created yet. Click "Create New Report" to get started.</p>
-              </div>
-            )}
-
-            {report && (
-              <div className="report-container">
+        ) : report ? (
+          <div className="report-container">
                 <div className="report-header">
                   {isEditingReportTitle ? (
                     <input
@@ -498,9 +472,7 @@ const App: React.FC = () => {
                     </div>
                   ) : (
                     report.charts.map((chart) => {
-                      console.log('Rendering chart:', chart);
                       const dataset = report.datasets.find(d => d.id === chart.datasetId) || report.datasets[0];
-                      console.log('Chart dataset:', dataset);
                       
                       return (
                         <Chart
@@ -524,8 +496,10 @@ const App: React.FC = () => {
                   )}
                 </div>
               </div>
-            )}
-          </>
+        ) : (
+          <div className="app-empty">
+            <p>Loading...</p>
+          </div>
         )}
 
         {isLoading && <div className="loading-overlay">Importing HTML...</div>}

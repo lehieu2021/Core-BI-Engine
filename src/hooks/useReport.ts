@@ -292,6 +292,14 @@ export const useReport = (initialReport?: Report) => {
     setError(null);
   }, []);
   
+  /**
+   * Clear report completely (set to null)
+   */
+  const clearReport = useCallback(() => {
+    setReport(null);
+    setError(null);
+  }, []);
+  
   return {
     report,
     loading,
@@ -310,6 +318,7 @@ export const useReport = (initialReport?: Report) => {
     addMeasure,
     updateChartPosition,
     setReport: setReportData,
-    setReportDirect: setReport
+    setReportDirect: setReport,
+    clearReport
   };
 };
