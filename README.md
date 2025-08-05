@@ -2,7 +2,7 @@
 
 ## Tiếng Việt
 
-Core BI Engine là bộ xử lý trung tâm cho hệ thống BI report với các chức năng:
+Core BI Engine là bộ xử lý trung tâm cho hệ thống BI report với các chức năng (Azure deployed):
 
 - Import file HTML dạng report
 - Edit data trong chart: đổi field hiển thị, đổi công thức tính toán (Sum, Max, Min, Count, Count Distinct)

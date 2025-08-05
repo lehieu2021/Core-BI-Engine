@@ -38,9 +38,9 @@ jobs:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           action: "upload"
           ###### Repository/Build Configurations ######
-          app_location: "/" # App source code path
+          app_location: "dist" # Built app content directory (since skip_app_build is true)
           api_location: "" # Api source code path - optional
-          output_location: "dist" # Built app content directory
+          output_location: "" # Not needed when skip_app_build is true
           skip_app_build: true # Skip build since we built manually above
           ###### End of Repository/Build Configurations ######
 
