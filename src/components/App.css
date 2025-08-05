@@ -1,0 +1,582 @@
+/* App.css - Main application styles */
+
+/* Reset and base styles */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'Roboto', sans-serif;
+  background-color: #f5f7fa;
+  color: #333;
+  line-height: 1.6;
+}
+
+/* Main app container */
+.app {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+/* App container with sidebar */
+.app-container {
+  display: flex;
+  flex: 1;
+}
+
+/* App header */
+.app-header {
+  background-color: #2c3e50;
+  color: white;
+  padding: 1rem 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.app-header h1 {
+  font-size: 1.8rem;
+  font-weight: 500;
+}
+
+/* Action buttons container */
+.app-actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+/* Active button style */
+.active-button {
+  background-color: #27ae60 !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Button styles */
+button, .import-label {
+  background-color: #3498db;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 0.5rem 1rem;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  display: inline-block;
+}
+
+button:hover, .import-label:hover {
+  background-color: #2980b9;
+}
+
+/* Sidebar */
+.chart-sidebar {
+  width: 250px;
+  background-color: white;
+  border-right: 1px solid #ecf0f1;
+  padding: 1.5rem 1rem;
+  overflow-y: auto;
+}
+
+.sidebar-section {
+  margin-bottom: 2rem;
+}
+
+.sidebar-section h3 {
+  font-size: 1rem;
+  color: #7f8c8d;
+  margin-bottom: 1rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.chart-type-icons {
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+}
+
+.chart-type-item {
+  display: flex;
+  align-items: center;
+  padding: 0.8rem;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.chart-type-item:hover {
+  background-color: #f5f7fa;
+}
+
+.chart-type-item svg {
+  color: #3498db;
+  margin-right: 0.8rem;
+}
+
+.chart-type-item span {
+  font-size: 0.9rem;
+  color: #2c3e50;
+}
+
+/* Main content area */
+.app-content {
+  flex: 1;
+  padding: 2rem;
+  overflow-y: auto;
+}
+
+/* Empty state */
+.app-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  text-align: center;
+  color: #7f8c8d;
+  padding: 2rem;
+}
+
+.app-empty p {
+  margin-bottom: 1rem;
+  font-size: 1.2rem;
+}
+
+/* Report container */
+.report-container {
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+  padding: 2rem;
+  margin-bottom: 2rem;
+}
+
+.report-container h2 {
+  margin-bottom: 0.5rem;
+  color: #2c3e50;
+}
+
+.report-container p {
+  color: #7f8c8d;
+  margin-bottom: 2rem;
+}
+
+/* Charts container */
+.charts-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  gap: 1.5rem;
+  position: relative;
+}
+
+/* Loading overlay */
+.loading-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.7);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: white;
+  font-size: 1.5rem;
+  z-index: 1000;
+}
+
+/* Error message */
+.error-message {
+  position: fixed;
+  bottom: 2rem;
+  right: 2rem;
+  background-color: #e74c3c;
+  color: white;
+  padding: 1rem;
+  border-radius: 4px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+  z-index: 1000;
+  max-width: 400px;
+}
+
+.error-message p {
+  margin-bottom: 0.5rem;
+}
+
+.error-message button {
+  background-color: white;
+  color: #e74c3c;
+  padding: 0.3rem 0.8rem;
+  font-size: 0.8rem;
+}
+
+/* Card and KPI Card styles */
+.card-chart, .kpi-card-chart {
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  padding: 1.5rem;
+  text-align: center;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.card-value, .kpi-value {
+  font-size: 2.5rem;
+  font-weight: 500;
+  color: #2c3e50;
+  margin-bottom: 0.5rem;
+}
+
+.card-label, .kpi-label {
+  font-size: 1rem;
+  color: #7f8c8d;
+}
+
+.kpi-card-chart {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  text-align: left;
+}
+
+.kpi-primary {
+  flex: 2;
+}
+
+.kpi-comparison {
+  flex: 1;
+  text-align: right;
+  padding-left: 1rem;
+  border-left: 1px solid #ecf0f1;
+}
+
+.kpi-change {
+  font-size: 1.2rem;
+  font-weight: 500;
+  margin-bottom: 0.3rem;
+}
+
+.kpi-change.positive {
+  color: #2ecc71;
+}
+
+.kpi-change.negative {
+  color: #e74c3c;
+}
+
+.kpi-comparison-label {
+  font-size: 0.8rem;
+  color: #95a5a6;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .app-header {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 1rem;
+  }
+  
+  .app-header h1 {
+    margin-bottom: 1rem;
+  }
+  
+  .app-actions {
+    width: 100%;
+    justify-content: flex-start;
+  }
+  
+  .app-container {
+    flex-direction: column;
+  }
+  
+  .chart-sidebar {
+    width: 100%;
+    border-right: none;
+    border-bottom: 1px solid #ecf0f1;
+    padding: 1rem;
+  }
+  
+  .chart-type-icons {
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+  
+  .chart-type-item {
+    width: calc(50% - 0.5rem);
+    padding: 0.6rem;
+  }
+  
+  .app-content {
+    padding: 1rem;
+    width: 100%;
+    max-width: 100%;
+  }
+  
+  .charts-container {
+    justify-content: center;
+  }
+  
+  .charts-container .chart-container {
+    max-width: calc(100vw - 40px);
+  }
+  
+  .react-resizable {
+    max-width: calc(100vw - 40px) !important;
+  }
+  
+  .kpi-card-chart {
+    flex-direction: column;
+  }
+  
+  .kpi-comparison {
+    border-left: none;
+    border-top: 1px solid #ecf0f1;
+    padding-left: 0;
+    padding-top: 1rem;
+    margin-top: 1rem;
+    text-align: left;
+    width: 100%;
+  }
+}
+
+/* Drag and Drop Styles */
+.sidebar-hint {
+  font-size: 12px;
+  color: #7f8c8d;
+  margin: 0 0 16px 0;
+  font-style: italic;
+}
+
+.chart-type-item {
+  cursor: grab;
+  transition: all 0.2s ease;
+}
+
+.chart-type-item:active {
+  cursor: grabbing;
+}
+
+.chart-type-item[draggable="true"]:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.chart-type-item:hover {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+/* Drop Zone Styles */
+.charts-container {
+  position: relative;
+  min-height: 400px;
+  border: 2px dashed transparent;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+}
+
+.charts-container.drag-over {
+  border-color: #4285f4;
+  background-color: rgba(66, 133, 244, 0.05);
+  animation: dragPulse 1s ease-in-out infinite alternate;
+}
+
+@keyframes dragPulse {
+  from {
+    border-color: #4285f4;
+    background-color: rgba(66, 133, 244, 0.05);
+  }
+  to {
+    border-color: #667eea;
+    background-color: rgba(102, 126, 234, 0.1);
+  }
+}
+
+.drop-zone-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 400px;
+  border: 2px dashed #bdc3c7;
+  border-radius: 12px;
+  background-color: #f8f9fa;
+  transition: all 0.3s ease;
+}
+
+.charts-container.drag-over .drop-zone-empty {
+  border-color: #4285f4;
+  background-color: rgba(66, 133, 244, 0.1);
+}
+
+.drop-zone-content {
+  text-align: center;
+  color: #7f8c8d;
+}
+
+.drop-zone-content svg {
+  margin-bottom: 16px;
+  color: #bdc3c7;
+}
+
+.drop-zone-content h3 {
+  margin: 0 0 8px 0;
+  color: #2c3e50;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.drop-zone-content p {
+  margin: 0;
+  font-size: 14px;
+  color: #7f8c8d;
+  max-width: 300px;
+}
+
+/* Chart Container with positioning */
+.charts-container:not(.drag-over) {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+  align-content: flex-start;
+  align-items: flex-start;
+}
+
+.charts-container .chart-container {
+  flex: none;
+  position: relative;
+}
+
+/* Resizable chart styles */
+.react-resizable {
+  position: relative;
+}
+
+.react-resizable-handle {
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  background-repeat: no-repeat;
+  background-origin: content-box;
+  box-sizing: border-box;
+  background-image: url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNiIgaGVpZ2h0PSI2IiB2aWV3Qm94PSIwIDAgNiA2IiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPjxnIGZpbGw9IiM5OTkiPjxjaXJjbGUgY3g9IjEiIGN5PSIxIiByPSIxIi8+PGNpcmNsZSBjeD0iNSIgY3k9IjEiIHI9IjEiLz48Y2lyY2xlIGN4PSIxIiBjeT0iNSIgcj0iMSIvPjxjaXJjbGUgY3g9IjUiIGN5PSI1IiByPSIxIi8+PC9nPjwvc3ZnPg==');
+  background-position: bottom right;
+  padding: 0 3px 3px 0;
+  z-index: 10;
+  opacity: 0.7;
+  transition: opacity 0.2s ease;
+}
+
+.react-resizable-handle:hover {
+  opacity: 1;
+}
+
+.react-resizable-handle-se {
+  bottom: 0;
+  right: 0;
+  cursor: se-resize;
+}
+
+.react-resizable-handle-s {
+  left: 50%;
+  margin-left: -10px;
+  bottom: 0;
+  cursor: s-resize;
+}
+
+.react-resizable-handle-e {
+  right: 0;
+  top: 50%;
+  margin-top: -10px;
+  cursor: e-resize;
+}
+
+.react-resizable-handle-n {
+  left: 50%;
+  margin-left: -10px;
+  top: 0;
+  cursor: n-resize;
+}
+
+.react-resizable-handle-w {
+  left: 0;
+  top: 50%;
+  margin-top: -10px;
+  cursor: w-resize;
+}
+
+.react-resizable-handle-ne {
+  right: 0;
+  top: 0;
+  cursor: ne-resize;
+}
+
+.react-resizable-handle-nw {
+  left: 0;
+  top: 0;
+  cursor: nw-resize;
+}
+
+.react-resizable-handle-sw {
+  left: 0;
+  bottom: 0;
+  cursor: sw-resize;
+}
+
+/* Dragging feedback */
+.chart-type-item.dragging {
+  opacity: 0.5;
+  transform: rotate(5deg) scale(0.95);
+  transition: all 0.1s ease;
+}
+
+.chart-type-item[draggable="true"] {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+/* Modal backdrop */
+.modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 999;
+}
+
+/* Responsive drag and drop */
+@media (max-width: 768px) {
+  .sidebar-hint {
+    font-size: 11px;
+  }
+  
+  .drop-zone-empty {
+    height: 300px;
+  }
+  
+  .drop-zone-content h3 {
+    font-size: 16px;
+  }
+  
+  .drop-zone-content p {
+    font-size: 13px;
+  }
+}

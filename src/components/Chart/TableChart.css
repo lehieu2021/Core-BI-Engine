@@ -1,0 +1,130 @@
+/* TableChart.css */
+
+.table-chart {
+  width: 100%;
+  overflow: auto;
+  max-height: 400px;
+  border-radius: 4px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.table-chart table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+  background-color: white;
+}
+
+.table-chart th,
+.table-chart td {
+  padding: 0.75rem;
+  text-align: left;
+  border-bottom: 1px solid #ecf0f1;
+}
+
+.table-chart th {
+  background-color: #f8f9fa;
+  font-weight: 500;
+  color: #2c3e50;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.table-chart tbody tr:hover {
+  background-color: #f5f7fa;
+}
+
+.table-chart .sortable {
+  cursor: pointer;
+  position: relative;
+}
+
+.table-chart .sortable::after {
+  content: '⇅';
+  position: absolute;
+  right: 0.5rem;
+  color: #95a5a6;
+  font-size: 0.8rem;
+}
+
+.table-chart .sortable.asc::after {
+  content: '↑';
+  color: #3498db;
+}
+
+.table-chart .sortable.desc::after {
+  content: '↓';
+  color: #3498db;
+}
+
+/* Matrix table styles */
+.matrix-table {
+  width: 100%;
+  overflow: auto;
+  max-height: 400px;
+  border-radius: 4px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.matrix-table table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+  background-color: white;
+}
+
+.matrix-table th,
+.matrix-table td {
+  padding: 0.75rem;
+  text-align: left;
+  border: 1px solid #ecf0f1;
+}
+
+.matrix-table th {
+  background-color: #f8f9fa;
+  font-weight: 500;
+  color: #2c3e50;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.matrix-table .row-header {
+  background-color: #f8f9fa;
+  font-weight: 500;
+  color: #2c3e50;
+}
+
+.matrix-table .corner-header {
+  background-color: #eef2f5;
+}
+
+.matrix-table .measure-value {
+  text-align: right;
+}
+
+.matrix-table .total-row {
+  background-color: #f8f9fa;
+  font-weight: 500;
+}
+
+.matrix-table .total-column {
+  background-color: #f8f9fa;
+  font-weight: 500;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .table-chart,
+  .matrix-table {
+    font-size: 0.8rem;
+  }
+  
+  .table-chart th,
+  .table-chart td,
+  .matrix-table th,
+  .matrix-table td {
+    padding: 0.5rem;
+  }
+}
