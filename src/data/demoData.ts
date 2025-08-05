@@ -125,6 +125,11 @@ export const chartConfigurations = {
       { field: 'quantity', calculation: 'sum' as const }
     ],
     description: 'Matrix view of data with cross-tabulation'
+  },
+  slicer: {
+    defaultDimensions: ['product_category', 'region'],
+    defaultMeasures: [],
+    description: 'Interactive filter for other charts'
   }
 };
 

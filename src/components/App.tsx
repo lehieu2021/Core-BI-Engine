@@ -3,9 +3,9 @@ import { Report, ChartConfig, Dataset, ChartType, Dimension, Measure } from '../
 import Chart from './Chart/Chart';
 import { useReport } from '../hooks/useReport';
 import { useHtmlImport } from '../hooks/useHtmlImport';
-import { FiBarChart2, FiPieChart, FiDatabase } from 'react-icons/fi';
+import { FiBarChart2, FiPieChart, FiDatabase, FiPlus, FiDownload, FiUpload } from 'react-icons/fi';
 import { BiLineChart, BiTable, BiCard } from 'react-icons/bi';
-import { MdOutlineInsertChart, MdOutlineAnalytics } from 'react-icons/md';
+import { MdOutlineInsertChart, MdOutlineAnalytics, MdOutlineFilterList } from 'react-icons/md';
 import SampleDataDemo from './SampleDataDemo';
 import ChartConfigPanel from './ChartConfigPanel';
 import { createDemoDataset, chartConfigurations } from '../data/demoData';
@@ -16,6 +16,8 @@ const App: React.FC = () => {
   const [showSampleData, setShowSampleData] = useState<boolean>(false);
   const [isDragOver, setIsDragOver] = useState<boolean>(false);
   const [configPanelChartId, setConfigPanelChartId] = useState<string | null>(null);
+  const [isEditingReportTitle, setIsEditingReportTitle] = useState<boolean>(false);
+  const [tempReportTitle, setTempReportTitle] = useState<string>('');
   
   const {
     report,
@@ -40,9 +42,54 @@ const App: React.FC = () => {
     reset: resetImport
   } = useHtmlImport();
 
+  // Handler for editing report title
+  const handleReportTitleDoubleClick = () => {
+    if (!report) return;
+    setIsEditingReportTitle(true);
+    setTempReportTitle(report.name);
+  };
+
+  const handleReportTitleSave = () => {
+    if (!report || !tempReportTitle.trim() || tempReportTitle === report.name) {
+      setIsEditingReportTitle(false);
+      return;
+    }
+
+    const updatedReport = {
+      ...report,
+      name: tempReportTitle.trim(),
+      updatedAt: new Date()
+    };
+    
+    setReportDirect(updatedReport);
+    setIsEditingReportTitle(false);
+  };
+
+  const handleReportTitleCancel = () => {
+    setTempReportTitle(report?.name || '');
+    setIsEditingReportTitle(false);
+  };
+
+  const handleReportTitleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      handleReportTitleSave();
+    } else if (e.key === 'Escape') {
+      handleReportTitleCancel();
+    }
+  };
+
   // Handler for creating a new report
   const handleCreateReport = () => {
     createReport('New Report', 'A new BI report');
+  };
+
+  // Handler for creating new (clear current report)
+  const handleCreateNew = () => {
+    setReportDirect(null);
+    setSelectedChartId(null);
+    setConfigPanelChartId(null);
+    setIsEditingReportTitle(false);
+    setTempReportTitle('');
   };
 
   // Handler for adding a new chart
@@ -266,12 +313,23 @@ const App: React.FC = () => {
         <h1>Core BI Engine</h1>
         <div className="app-actions">
           {!report && !showSampleData && (
-            <button onClick={handleCreateReport}>Create New Report</button>
+            <button className="btn btn-primary" onClick={handleCreateReport}>
+              <FiPlus className="btn-icon" />
+              Tạo Report Mới
+            </button>
           )}
           {report && !showSampleData && (
             <>
-              <button onClick={handleExportHtml}>Export to HTML</button>
-              <label className="import-label">
+              <button className="btn btn-danger" onClick={handleCreateNew}>
+                <FiPlus className="btn-icon" />
+                Tạo Mới
+              </button>
+              <button className="btn btn-success" onClick={handleExportHtml}>
+                <FiDownload className="btn-icon" />
+                Export HTML
+              </button>
+              <label className="btn btn-info import-btn">
+                <FiUpload className="btn-icon" />
                 Import HTML
                 <input 
                   type="file" 
@@ -284,9 +342,9 @@ const App: React.FC = () => {
           )}
           <button 
             onClick={() => setShowSampleData(!showSampleData)}
-            className={showSampleData ? "active-button" : ""}
+            className={`btn ${showSampleData ? "btn-active" : "btn-secondary"}`}
           >
-            <FiDatabase style={{ marginRight: '5px' }} />
+            <FiDatabase className="btn-icon" />
             {showSampleData ? "Quay lại ứng dụng" : "Xem dữ liệu mẫu"}
           </button>
         </div>
@@ -369,6 +427,16 @@ const App: React.FC = () => {
                   <MdOutlineAnalytics size={24} />
                   <span>KPI Card</span>
                 </div>
+                <div 
+                  className="chart-type-item" 
+                  draggable={true}
+                  onClick={() => handleAddChart('slicer')} 
+                  onDragStart={(e) => handleDragStart(e, 'slicer')}
+                  title={`Slicer - ${chartConfigurations.slicer.description}`}
+                >
+                  <MdOutlineFilterList size={24} />
+                  <span>Slicer</span>
+                </div>
               </div>
             </div>
           </aside>
@@ -387,7 +455,28 @@ const App: React.FC = () => {
 
             {report && (
               <div className="report-container">
-                <h2>{report.name}</h2>
+                <div className="report-header">
+                  {isEditingReportTitle ? (
+                    <input
+                      type="text"
+                      value={tempReportTitle}
+                      onChange={(e) => setTempReportTitle(e.target.value)}
+                      onBlur={handleReportTitleSave}
+                      onKeyDown={handleReportTitleKeyPress}
+                      className="report-title-input"
+                      autoFocus
+                      onClick={(e) => e.stopPropagation()}
+                    />
+                  ) : (
+                    <h2 
+                      className="report-title editable-title" 
+                      onDoubleClick={handleReportTitleDoubleClick}
+                      title="Double-click to edit report title"
+                    >
+                      {report.name}
+                    </h2>
+                  )}
+                </div>
                 <p>{report.description}</p>
                 
 

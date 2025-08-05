@@ -1,7 +1,7 @@
 // Định nghĩa các kiểu dữ liệu cho ứng dụng
 
 // Kiểu dữ liệu cho chart
-export type ChartType = 'line' | 'column' | 'bar' | 'donut' | 'table' | 'matrix-table' | 'card' | 'kpi-card';
+export type ChartType = 'line' | 'column' | 'bar' | 'donut' | 'table' | 'matrix-table' | 'card' | 'kpi-card' | 'slicer';
 
 // Kiểu dữ liệu cho phép tính toán
 export type CalculationType = 'sum' | 'max' | 'min' | 'count' | 'count-distinct' | 'average';

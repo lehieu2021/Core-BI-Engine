@@ -9,6 +9,7 @@ import BarChart from './BarChart';
 import DonutChart from './DonutChart';
 import TableChart from './TableChart';
 import CardChart from './CardChart';
+import SlicerChart from './SlicerChart';
 import './Chart.css';
 
 interface ChartProps {
@@ -99,6 +100,8 @@ const Chart: React.FC<ChartProps> = ({
       case 'card':
       case 'kpi-card':
         return <CardChart {...commonProps} />;
+      case 'slicer':
+        return <SlicerChart config={config} dataset={dataset} />;
       default:
         return <div className="chart-error">Unsupported chart type</div>;
     }
