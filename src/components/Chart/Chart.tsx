@@ -1,16 +1,18 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useMemo, memo, useCallback, Suspense, lazy } from 'react';
 import { Resizable } from 'react-resizable';
 import { HiOutlineMenu } from 'react-icons/hi';
 import { ChartConfig, Dataset } from '../../types';
 import { ChartService } from '../../services/chartService';
-import LineChart from './LineChart';
-import ColumnChart from './ColumnChart';
-import BarChart from './BarChart';
-import DonutChart from './DonutChart';
-import TableChart from './TableChart';
-import CardChart from './CardChart';
-import SlicerChart from './SlicerChart';
 import './Chart.css';
+
+// Lazy load chart components for better performance
+const LineChart = lazy(() => import('./LineChart'));
+const ColumnChart = lazy(() => import('./ColumnChart'));
+const BarChart = lazy(() => import('./BarChart'));
+const DonutChart = lazy(() => import('./DonutChart'));
+const TableChart = lazy(() => import('./TableChart'));
+const CardChart = lazy(() => import('./CardChart'));
+const SlicerChart = lazy(() => import('./SlicerChart'));
 
 interface ChartProps {
   config: ChartConfig;
@@ -29,7 +31,7 @@ interface ChartProps {
 /**
  * Component hiển thị chart
  */
-const Chart: React.FC<ChartProps> = ({
+const Chart: React.FC<ChartProps> = memo(({
   config,
   dataset,
   onConfigChange,
@@ -44,18 +46,20 @@ const Chart: React.FC<ChartProps> = ({
 }) => {
   const [isEditingName, setIsEditingName] = useState(false);
   const [tempName, setTempName] = useState(config.name);
+  
   // Sử dụng dataset từ props
   if (!dataset) {
     console.error('Dataset is required for chart:', config.id);
     return <div className="chart-error">Dataset not found</div>;
   }
-  const chartDataset = dataset;
   
-  // Tính toán dữ liệu cho chart
-  const chartData = ChartService.calculateChartData({
-    ...config,
-    dataset: chartDataset
-  });
+  // Memoize chart data calculation
+  const chartData = useMemo(() => {
+    return ChartService.calculateChartData({
+      ...config,
+      dataset
+    });
+  }, [config, dataset]);
   
   // Render chart theo loại
   const renderChart = () => {
@@ -87,37 +91,65 @@ const Chart: React.FC<ChartProps> = ({
     
     switch (config.type) {
       case 'line':
-        return <LineChart {...commonProps} />;
+        return (
+          <Suspense fallback={<div className="chart-loading">Loading Line Chart...</div>}>
+            <LineChart {...commonProps} />
+          </Suspense>
+        );
       case 'column':
-        return <ColumnChart {...commonProps} />;
+        return (
+          <Suspense fallback={<div className="chart-loading">Loading Column Chart...</div>}>
+            <ColumnChart {...commonProps} />
+          </Suspense>
+        );
       case 'bar':
-        return <BarChart {...commonProps} />;
+        return (
+          <Suspense fallback={<div className="chart-loading">Loading Bar Chart...</div>}>
+            <BarChart {...commonProps} />
+          </Suspense>
+        );
       case 'donut':
-        return <DonutChart {...commonProps} />;
+        return (
+          <Suspense fallback={<div className="chart-loading">Loading Donut Chart...</div>}>
+            <DonutChart {...commonProps} />
+          </Suspense>
+        );
       case 'table':
       case 'matrix-table':
-        return <TableChart {...commonProps} />;
+        return (
+          <Suspense fallback={<div className="chart-loading">Loading Table...</div>}>
+            <TableChart {...commonProps} />
+          </Suspense>
+        );
       case 'card':
       case 'kpi-card':
-        return <CardChart {...commonProps} />;
+        return (
+          <Suspense fallback={<div className="chart-loading">Loading Card...</div>}>
+            <CardChart {...commonProps} />
+          </Suspense>
+        );
       case 'slicer':
-        return <SlicerChart config={config} dataset={dataset} />;
+        return (
+          <Suspense fallback={<div className="chart-loading">Loading Slicer...</div>}>
+            <SlicerChart config={config} dataset={dataset} />
+          </Suspense>
+        );
       default:
         return <div className="chart-error">Unsupported chart type</div>;
     }
   };
   
   // Xử lý khi người dùng thay đổi vị trí chart
-  const handlePositionChange = (position: ChartConfig['position']) => {
+  const handlePositionChange = useCallback((position: ChartConfig['position']) => {
     if (onPositionChange) {
       onPositionChange(config.id, position);
     } else if (onConfigChange) {
       onConfigChange(ChartService.updatePosition(config, position));
     }
-  };
+  }, [config.id, onPositionChange, onConfigChange, config]);
 
   // Xử lý khi người dùng resize chart
-  const handleResize = (event: any, { size }: { size: { width: number; height: number } }) => {
+  const handleResize = useCallback((event: any, { size }: { size: { width: number; height: number } }) => {
     const newPosition = {
       ...config.position,
       width: size.width,
@@ -134,7 +166,7 @@ const Chart: React.FC<ChartProps> = ({
     } else if (onConfigChange) {
       onConfigChange(updatedConfig);
     }
-  };
+  }, [config, onUpdate, onConfigChange]);
 
   // Xử lý khi double click vào title để edit
   const handleTitleDoubleClick = (e: React.MouseEvent) => {
@@ -241,6 +273,8 @@ const Chart: React.FC<ChartProps> = ({
       </div>
     </Resizable>
   );
-};
+});
+
+Chart.displayName = 'Chart';
 
 export default Chart;
