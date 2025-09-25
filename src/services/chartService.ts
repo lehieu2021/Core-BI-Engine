@@ -1,5 +1,9 @@
 import { ChartConfig, Dataset, Dimension, Measure, CalculationType } from '../types';
 
+// Cache for chart data calculations to improve performance
+const chartDataCache = new Map<string, any>();
+const CACHE_EXPIRY = 5 * 60 * 1000; // 5 minutes
+
 /**
  * Service xử lý chart
  */
@@ -159,24 +163,72 @@ export class ChartService {
       return { labels: [], datasets: [] };
     }
     
+    // Create cache key based on chart config and dataset
+    const cacheKey = this.createCacheKey(chartWithDataset);
+    
+    // Check cache first
+    const cached = chartDataCache.get(cacheKey);
+    if (cached && Date.now() - cached.timestamp < CACHE_EXPIRY) {
+      return cached.data;
+    }
+    
     // Đảm bảo chart config có dataset
     const chartConfig = { ...chartWithDataset };
     
+    let result;
     switch (chartWithDataset.type) {
       case 'line':
       case 'column':
       case 'bar':
-        return this.calculateCategoryChartData(chartConfig);
+        result = this.calculateCategoryChartData(chartConfig);
+        break;
       case 'donut':
-        return this.calculateDonutChartData(chartConfig);
+        result = this.calculateDonutChartData(chartConfig);
+        break;
       case 'table':
       case 'matrix-table':
-        return this.calculateTableData(chartConfig);
+        result = this.calculateTableData(chartConfig);
+        break;
       case 'card':
       case 'kpi-card':
-        return this.calculateCardData(chartConfig);
+        result = this.calculateCardData(chartConfig);
+        break;
       default:
-        return { labels: [], datasets: [] };
+        result = { labels: [], datasets: [] };
+    }
+    
+    // Cache the result
+    chartDataCache.set(cacheKey, {
+      data: result,
+      timestamp: Date.now()
+    });
+    
+    // Clean up old cache entries
+    this.cleanupCache();
+    
+    return result;
+  }
+  
+  /**
+   * Create cache key for chart data
+   */
+  private static createCacheKey(chartWithDataset: { dataset: Dataset } & ChartConfig): string {
+    const { id, type, dimensions, measures, dataset } = chartWithDataset;
+    const dimIds = dimensions?.map(d => d.id).sort().join(',') || '';
+    const measureIds = measures?.map(m => `${m.id}:${m.calculation}`).sort().join(',') || '';
+    const dataHash = dataset?.data?.length || 0;
+    return `${id}-${type}-${dimIds}-${measureIds}-${dataHash}`;
+  }
+  
+  /**
+   * Clean up expired cache entries
+   */
+  private static cleanupCache(): void {
+    const now = Date.now();
+    for (const [key, value] of chartDataCache.entries()) {
+      if (now - value.timestamp > CACHE_EXPIRY) {
+        chartDataCache.delete(key);
+      }
     }
   }
   

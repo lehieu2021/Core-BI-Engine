@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, memo } from 'react';
 import { Report, ChartConfig, Dataset, ChartType, Dimension, Measure } from '../types';
 import Chart from './Chart/Chart';
 import { useReport } from '../hooks/useReport';
@@ -9,7 +9,45 @@ import { MdOutlineInsertChart, MdOutlineAnalytics, MdOutlineFilterList } from 'r
 import SampleDataDemo from './SampleDataDemo';
 import ChartConfigPanel from './ChartConfigPanel';
 import { createDemoDataset, chartConfigurations } from '../data/demoData';
+import { performanceMonitor } from '../utils/performance';
 import './App.css';
+
+// Memoized Chart Type Icons Component
+const ChartTypeIcons = memo(({ onAddChart, onDragStart }: {
+  onAddChart: (type: ChartType) => void;
+  onDragStart: (e: React.DragEvent, type: ChartType) => void;
+}) => {
+  const chartTypes = useMemo(() => [
+    { type: 'line' as ChartType, icon: BiLineChart, label: 'Line' },
+    { type: 'column' as ChartType, icon: MdOutlineInsertChart, label: 'Column' },
+    { type: 'bar' as ChartType, icon: FiBarChart2, label: 'Bar' },
+    { type: 'donut' as ChartType, icon: FiPieChart, label: 'Donut' },
+    { type: 'table' as ChartType, icon: BiTable, label: 'Table' },
+    { type: 'card' as ChartType, icon: BiCard, label: 'Card' },
+    { type: 'kpi-card' as ChartType, icon: MdOutlineAnalytics, label: 'KPI Card' },
+    { type: 'slicer' as ChartType, icon: MdOutlineFilterList, label: 'Slicer' }
+  ], []);
+
+  return (
+    <div className="chart-type-icons">
+      {chartTypes.map(({ type, icon: Icon, label }) => (
+        <div 
+          key={type}
+          className="chart-type-item" 
+          draggable={true}
+          onClick={() => onAddChart(type)} 
+          onDragStart={(e) => onDragStart(e, type)}
+          title={`${label} Chart - ${chartConfigurations[type].description}`}
+        >
+          <Icon size={24} />
+          <span>{label}</span>
+        </div>
+      ))}
+    </div>
+  );
+});
+
+ChartTypeIcons.displayName = 'ChartTypeIcons';
 
 const App: React.FC = () => {
   const [selectedChartId, setSelectedChartId] = useState<string | null>(null);
@@ -50,6 +88,16 @@ const App: React.FC = () => {
       createReport('New Report', 'A new BI report');
     }
   }, [report, createReport]);
+
+  // Performance monitoring
+  useEffect(() => {
+    performanceMonitor.startMonitoring();
+    performanceMonitor.recordLoadTime();
+    
+    return () => {
+      performanceMonitor.logMetrics();
+    };
+  }, []);
 
   // Handler for editing report title
   const handleReportTitleDoubleClick = () => {
@@ -93,7 +141,7 @@ const App: React.FC = () => {
   };
 
   // Handler for creating new (clear current report and create fresh one)
-  const handleCreateNew = () => {
+  const handleCreateNew = useCallback(() => {
     // Reset all states to initial values
     setSelectedChartId(null);
     setConfigPanelChartId(null);
@@ -106,10 +154,10 @@ const App: React.FC = () => {
     // Create a new fresh report
     createReport('New Report', 'A new BI report');
     setAppKey(prev => prev + 1); // Force complete component re-render
-  };
+  }, [createReport, resetImport]);
 
   // Handler for adding a new chart
-  const handleAddChart = (type: ChartType) => {
+  const handleAddChart = useCallback((type: ChartType) => {
     if (!report) {
       return;
     }
@@ -177,18 +225,18 @@ const App: React.FC = () => {
     // Update the report state directly with the final result
     setReportDirect(finalReport);
     setSelectedChartId(newChart.id);
-  };
+  }, [report, setReportDirect]);
 
   // Handler for removing a chart
-  const handleRemoveChart = (chartId: string) => {
+  const handleRemoveChart = useCallback((chartId: string) => {
     removeChart(chartId);
     if (selectedChartId === chartId) {
       setSelectedChartId(null);
     }
-  };
+  }, [removeChart, selectedChartId]);
 
   // Handler for exporting the report to HTML
-  const handleExportHtml = () => {
+  const handleExportHtml = useCallback(() => {
     if (!report) return;
     
     const htmlContent = exportToHtml();
@@ -203,10 +251,10 @@ const App: React.FC = () => {
     document.body.appendChild(element);
     element.click();
     document.body.removeChild(element);
-  };
+  }, [report, exportToHtml]);
 
   // Handler for importing HTML
-  const handleImportHtml = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImportHtml = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files;
     if (files && files.length > 0) {
       importFromFile(files[0])
@@ -217,10 +265,10 @@ const App: React.FC = () => {
           console.error('Error importing HTML:', err);
         });
     }
-  };
+  }, [importFromFile]);
 
   // Drag and Drop handlers
-  const handleDragStart = (e: React.DragEvent, chartType: ChartType) => {
+  const handleDragStart = useCallback((e: React.DragEvent, chartType: ChartType) => {
     e.dataTransfer.setData('application/chart-type', chartType);
     e.dataTransfer.setData('text/plain', chartType); // Fallback for compatibility
     e.dataTransfer.effectAllowed = 'copy';
@@ -233,7 +281,7 @@ const App: React.FC = () => {
     setTimeout(() => {
       target.classList.remove('dragging');
     }, 0);
-  };
+  }, []);
 
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
@@ -338,88 +386,10 @@ const App: React.FC = () => {
             <div className="sidebar-section">
               <h3>Chart Types</h3>
               <p className="sidebar-hint">Click or drag chart types to add them</p>
-              <div className="chart-type-icons">
-                <div 
-                  className="chart-type-item" 
-                  draggable={true}
-                  onClick={() => handleAddChart('line')} 
-                  onDragStart={(e) => handleDragStart(e, 'line')}
-                  title={`Line Chart - ${chartConfigurations.line.description}`}
-                >
-                  <BiLineChart size={24} />
-                  <span>Line</span>
-                </div>
-                <div 
-                  className="chart-type-item" 
-                  draggable={true}
-                  onClick={() => handleAddChart('column')} 
-                  onDragStart={(e) => handleDragStart(e, 'column')}
-                  title={`Column Chart - ${chartConfigurations.column.description}`}
-                >
-                  <MdOutlineInsertChart size={24} />
-                  <span>Column</span>
-                </div>
-                <div 
-                  className="chart-type-item" 
-                  draggable={true}
-                  onClick={() => handleAddChart('bar')} 
-                  onDragStart={(e) => handleDragStart(e, 'bar')}
-                  title={`Bar Chart - ${chartConfigurations.bar.description}`}
-                >
-                  <FiBarChart2 size={24} />
-                  <span>Bar</span>
-                </div>
-                <div 
-                  className="chart-type-item" 
-                  draggable={true}
-                  onClick={() => handleAddChart('donut')} 
-                  onDragStart={(e) => handleDragStart(e, 'donut')}
-                  title={`Donut Chart - ${chartConfigurations.donut.description}`}
-                >
-                  <FiPieChart size={24} />
-                  <span>Donut</span>
-                </div>
-                <div 
-                  className="chart-type-item" 
-                  draggable={true}
-                  onClick={() => handleAddChart('table')} 
-                  onDragStart={(e) => handleDragStart(e, 'table')}
-                  title={`Table - ${chartConfigurations.table.description}`}
-                >
-                  <BiTable size={24} />
-                  <span>Table</span>
-                </div>
-                <div 
-                  className="chart-type-item" 
-                  draggable={true}
-                  onClick={() => handleAddChart('card')} 
-                  onDragStart={(e) => handleDragStart(e, 'card')}
-                  title={`Card - ${chartConfigurations.card.description}`}
-                >
-                  <BiCard size={24} />
-                  <span>Card</span>
-                </div>
-                <div 
-                  className="chart-type-item" 
-                  draggable={true}
-                  onClick={() => handleAddChart('kpi-card')} 
-                  onDragStart={(e) => handleDragStart(e, 'kpi-card')}
-                  title={`KPI Card - ${chartConfigurations['kpi-card'].description}`}
-                >
-                  <MdOutlineAnalytics size={24} />
-                  <span>KPI Card</span>
-                </div>
-                <div 
-                  className="chart-type-item" 
-                  draggable={true}
-                  onClick={() => handleAddChart('slicer')} 
-                  onDragStart={(e) => handleDragStart(e, 'slicer')}
-                  title={`Slicer - ${chartConfigurations.slicer.description}`}
-                >
-                  <MdOutlineFilterList size={24} />
-                  <span>Slicer</span>
-                </div>
-              </div>
+              <ChartTypeIcons 
+                onAddChart={handleAddChart}
+                onDragStart={handleDragStart}
+              />
             </div>
           </aside>
         )}

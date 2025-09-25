@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { ChartConfig } from '../../types';
+import VirtualizedTable from '../VirtualizedTable';
 import './TableChart.css';
 
 interface TableChartProps {
@@ -15,6 +16,11 @@ const TableChart: React.FC<TableChartProps> = ({ data, config }) => {
   
   // Dữ liệu bảng
   const { headers, rows } = data;
+  
+  // Determine if we should use virtualization (for large datasets)
+  const shouldUseVirtualization = useMemo(() => {
+    return rows && rows.length > 100; // Use virtualization for more than 100 rows
+  }, [rows]);
   
   // Xử lý sắp xếp
   const handleSort = (key: string) => {
@@ -172,9 +178,32 @@ const TableChart: React.FC<TableChartProps> = ({ data, config }) => {
     return String(value);
   };
   
+  // Render virtualized table for large datasets
+  const renderVirtualizedTable = () => {
+    if (!shouldUseVirtualization) return null;
+    
+    return (
+      <div className="table-chart-container">
+        <div className="table-info">
+          <span>Showing {rows.length} rows (virtualized for performance)</span>
+        </div>
+        <VirtualizedTable
+          data={sortedRows}
+          headers={headers}
+          height={400}
+          itemHeight={40}
+        />
+      </div>
+    );
+  };
+  
   return (
     <div className="table-chart-container">
-      {config.type === 'matrix-table' ? renderMatrixTable() : renderTable()}
+      {shouldUseVirtualization ? (
+        renderVirtualizedTable()
+      ) : (
+        config.type === 'matrix-table' ? renderMatrixTable() : renderTable()
+      )}
     </div>
   );
 };
